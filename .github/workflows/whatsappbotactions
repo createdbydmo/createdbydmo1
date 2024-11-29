@@ -1,0 +1,29 @@
+name: Deploy WhatsApp Bot
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Start ngrok and bot
+      env:
+        PHONE_NUMBER_ID: ${{ secrets.PHONE_NUMBER_ID }}
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      run: |
+        nohup node app.js &
