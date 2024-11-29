@@ -1,0 +1,77 @@
+const axios = require('axios');
+
+// Load environment variables
+const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+const WHATSAPP_API_URL = `https://graph.facebook.com/v17.0/${PHONE_NUMBER_ID}/messages`;
+
+// Function to send WhatsApp messages
+const sendWhatsAppMessage = async (to, message) => {
+    try {
+        await axios.post(
+            WHATSAPP_API_URL,
+            {
+                messaging_product: 'whatsapp',
+                to: to,
+                type: 'text',
+                text: { body: message },
+            },
+            {
+                headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
+            }
+        );
+        console.log(`Message sent to ${to}`);
+    } catch (error) {
+        console.error('Error sending WhatsApp message:', error.response?.data || error.message);
+    }
+};
+
+// Function to handle incoming messages (mocked example)
+const handleIncomingMessage = async (from, text) => {
+    text = text.toLowerCase().trim();
+
+    if (text.includes('hello') || text.includes('hi')) {
+        await sendWhatsAppMessage(
+            from,
+            `👋 Hello! Welcome to *CreatedByDmo*, your go-to for professional graphic design services. 🎨\n\nType *menu* to explore our services and pricing.`
+        );
+    } else if (text.includes('menu')) {
+        await sendWhatsAppMessage(
+            from,
+            `📋 *Our Services*:\n\n` +
+                `1️⃣ *Logo Design*: Starting at NGN7,000 (Negotiable).\n` +
+                `2️⃣ *Branding Packages*: Starting at NGN28,000 (Negotiable).\n` +
+                `3️⃣ *Animated Cover Arts*: Starting at NGN10,500 (Price varies based on complexity).\n` +
+                `4️⃣ *Social Media Graphics*: Starting at NGN15,000 (Negotiable).\n\n` +
+                `💡 *Note*: Prices are negotiable and depend on the complexity and scope of the project.\n\n` +
+                `Type the number of the service you'd like to know more about.`
+        );
+    } else if (text === '1') {
+        await sendWhatsAppMessage(from, `👨‍🎨 *Logo Design*: Starting at NGN7,000. Negotiable. Type *book* to start.`);
+    } else if (text === '2') {
+        await sendWhatsAppMessage(from, `📦 *Branding Packages*: Starting at NGN28,000. Negotiable. Type *book* to start.`);
+    } else if (text === '3') {
+        await sendWhatsAppMessage(from, `🎥 *Animated Cover Arts*: Starting at NGN10,500. Price varies. Type *book* to start.`);
+    } else if (text === '4') {
+        await sendWhatsAppMessage(from, `📱 *Social Media Graphics*: Starting at NGN15,000. Negotiable. Type *book* to start.`);
+    } else {
+        await sendWhatsAppMessage(
+            from,
+            `❓ Sorry, I didn't understand that. Type *menu* to explore our services.`
+        );
+    }
+};
+
+// Start a mock server to listen for incoming messages (replace with actual webhook logic in production)
+const express = require('express');
+const app = express();
+app.use(express.json());
+
+app.post('/webhook', async (req, res) => {
+    const { from, text } = req.body; // Adjust based on WhatsApp API webhook structure
+    await handleIncomingMessage(from, text);
+    res.sendStatus(200);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Bot running on port ${PORT}`));
